@@ -120,6 +120,7 @@ pub(crate) struct Navigator {
     reflector_: Reflector,
     #[cfg(feature = "bluetooth")]
     bluetooth: MutNullableDom<Bluetooth>,
+    hid: MutNullableDom<HID>,
     credentials: MutNullableDom<CredentialsContainer>,
     plugins: MutNullableDom<PluginArray>,
     mime_types: MutNullableDom<MimeTypeArray>,
@@ -150,6 +151,7 @@ impl Navigator {
             reflector_: Reflector::new(),
             #[cfg(feature = "bluetooth")]
             bluetooth: Default::default(),
+            hid: Default::default(),
             credentials: Default::default(),
             plugins: Default::default(),
             mime_types: Default::default(),
@@ -300,8 +302,9 @@ impl Navigator {
 }
 
 impl NavigatorMethods<crate::DomTypeHolder> for Navigator {
-    fn Hid(&self) -> DomRoot<HID> {
-        todo!()
+    fn Hid(&self, cx: &mut js::context::JSContext) -> DomRoot<HID> {
+        self.hid
+            .or_init(|| HID::new(cx, &self.global()))
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-navigator-product>

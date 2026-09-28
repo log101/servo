@@ -121,6 +121,7 @@ gstreamer-webrtc = { version = "0.25", features = ["v1_18"] }
 half = "2"
 harfbuzz-sys = { version = "0.8", default-features = false }
 headers = "0.4"
+hidapi = "2.6.7"
 hilog = "0.2.2"
 hitrace = { version = "0.2.0", features = ["api-19", "tracing-rs"] }
 hkdf = "0.13"

@@ -5,11 +5,10 @@ partial interface Navigator {
 };
 
 [Exposed=(DedicatedWorker,ServiceWorker,Window), SecureContext]
-interface HID {
-    // attribute EventHandler onconnect;
-    // attribute EventHandler ondisconnect;
+interface HID : EventTarget {
+    attribute EventHandler onconnect;
+    attribute EventHandler ondisconnect;
     //Promise<sequence<HIDDevice>> getDevices();
     // [Exposed=Window] Promise<sequence<HIDDevice>> requestDevice(
     //   HIDDeviceRequestOptions options);
-    boolean getAvailability();
 };
