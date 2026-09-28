@@ -13,7 +13,7 @@ pub struct HID {
 
 impl HID {
     fn new_inherited() -> HID {
-        HID {
+        Self {
             event_target: EventTarget::new_inherited(),
         }
     }
@@ -24,19 +24,6 @@ impl HID {
 }
 
 impl HIDMethods<crate::DomTypeHolder> for HID {
-    fn GetOnconnect(&self, r#cx: &mut JSContext) -> Option<script_bindings::callback::RootedCallback<script_bindings::codegen::GenericBindings::EventHandlerBinding::EventHandlerNonNull<crate::DomTypeHolder>>> {
-        todo!()
-    }
-
-    fn SetOnconnect(&self, r#cx: &mut JSContext, r#value: Option<script_bindings::callback::RootedCallback<script_bindings::codegen::GenericBindings::EventHandlerBinding::EventHandlerNonNull<crate::DomTypeHolder>>>) {
-        todo!()
-    }
-
-    fn GetOndisconnect(&self, r#cx: &mut JSContext) -> Option<script_bindings::callback::RootedCallback<script_bindings::codegen::GenericBindings::EventHandlerBinding::EventHandlerNonNull<crate::DomTypeHolder>>> {
-        todo!()
-    }
-
-    fn SetOndisconnect(&self, r#cx: &mut JSContext, r#value: Option<script_bindings::callback::RootedCallback<script_bindings::codegen::GenericBindings::EventHandlerBinding::EventHandlerNonNull<crate::DomTypeHolder>>>) {
-        todo!()
-    }
+    event_handler!(connect, GetOnconnect, SetOnconnect);
+    event_handler!(disconnect, GetOndisconnect, SetOndisconnect);
 }
