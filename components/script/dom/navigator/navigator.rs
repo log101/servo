@@ -42,6 +42,7 @@ use crate::dom::bindings::str::{DOMString, USVString};
 use crate::dom::bindings::utils::to_frozen_array;
 #[cfg(feature = "bluetooth")]
 use crate::dom::bluetooth::Bluetooth;
+use crate::dom::hid::HID;
 use crate::dom::clipboard::Clipboard;
 use crate::dom::credentialmanagement::credentialscontainer::CredentialsContainer;
 use crate::dom::csp::{GlobalCspReporting, Violation};
@@ -299,6 +300,10 @@ impl Navigator {
 }
 
 impl NavigatorMethods<crate::DomTypeHolder> for Navigator {
+    fn Hid(&self) -> DomRoot<HID> {
+        todo!()
+    }
+
     /// <https://html.spec.whatwg.org/multipage/#dom-navigator-product>
     fn Product(&self) -> DOMString {
         navigatorinfo::Product()
