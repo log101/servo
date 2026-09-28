@@ -42,7 +42,6 @@ use crate::dom::bindings::str::{DOMString, USVString};
 use crate::dom::bindings::utils::to_frozen_array;
 #[cfg(feature = "bluetooth")]
 use crate::dom::bluetooth::Bluetooth;
-use crate::dom::hid::HID;
 use crate::dom::clipboard::Clipboard;
 use crate::dom::credentialmanagement::credentialscontainer::CredentialsContainer;
 use crate::dom::csp::{GlobalCspReporting, Violation};
@@ -50,6 +49,7 @@ use crate::dom::csp::{GlobalCspReporting, Violation};
 use crate::dom::gamepad::Gamepad;
 use crate::dom::geolocation::Geolocation;
 use crate::dom::globalscope::GlobalScope;
+use crate::dom::hid::HID;
 use crate::dom::mediadevices::MediaDevices;
 use crate::dom::mediasession::MediaSession;
 use crate::dom::mimetypearray::MimeTypeArray;
@@ -303,8 +303,7 @@ impl Navigator {
 
 impl NavigatorMethods<crate::DomTypeHolder> for Navigator {
     fn Hid(&self, cx: &mut js::context::JSContext) -> DomRoot<HID> {
-        self.hid
-            .or_init(|| HID::new(cx, &self.global()))
+        self.hid.or_init(|| HID::new(cx, &self.global()))
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-navigator-product>

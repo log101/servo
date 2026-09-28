@@ -225,6 +225,7 @@ pub(crate) mod bluetooth;
 #[cfg(feature = "bluetooth")]
 pub(crate) use self::bluetooth::*;
 pub(crate) mod hid;
+pub(crate) use self::hid::*;
 mod canvas;
 pub(crate) use self::canvas::*;
 pub(crate) mod characterdata;

@@ -76,6 +76,7 @@ cfg-if = { workspace = true }
 crossbeam-channel = { workspace = true }
 dpi = { workspace = true }
 euclid = { workspace = true }
+hidapi = { workspace = true }
 hitrace = { workspace = true, optional = true }
 image = { workspace = true }
 keyboard-types = { workspace = true }
