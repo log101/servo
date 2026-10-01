@@ -1,5 +1,3 @@
-use std::borrow::BorrowMut;
-
 use dom_struct::dom_struct;
 use hidapi::HidApi;
 use js::context::JSContext;
@@ -13,22 +11,48 @@ use crate::dom::eventtarget::EventTarget;
 use crate::dom::globalscope::GlobalScope;
 use crate::dom::promise::{Promise, RootedPromise};
 
+type HIDDeviceVector = Vec<Root<Dom<HIDDevice>>>;
+
 #[dom_struct]
 pub struct HID {
-    event_target: EventTarget,
-    devices: Vec<Root<Dom<HIDDevice>>>,
+    eventtarget: EventTarget,
+    devices: HIDDeviceVector,
 }
 
 impl HID {
-    fn new_inherited() -> HID {
+    fn new_inherited(devices: HIDDeviceVector) -> Self {
         Self {
-            event_target: EventTarget::new_inherited(),
-            devices: Vec::new(),
+            eventtarget: EventTarget::new_inherited(),
+            devices,
         }
     }
 
     pub(crate) fn new(cx: &mut JSContext, global: &GlobalScope) -> DomRoot<HID> {
-        reflect_dom_object(cx, Box::new(HID::new_inherited()), global)
+        let mut hid_devices = Vec::new();
+
+        match HidApi::new() {
+            Ok(api) => {
+                for device in api.device_list() {
+                    let device = HIDDevice::new(
+                        cx,
+                        global,
+                        device.vendor_id(),
+                        device.product_id(),
+                        DOMString::from(device.product_string().unwrap_or("default device string")),
+                    );
+
+                    hid_devices.push(device);
+                }
+            },
+            Err(_e) => {
+                log::info!("Error accesing HID devices!");
+            },
+        }
+
+
+        log::info!("Accessed HID devices {}", hid_devices.len());
+
+        reflect_dom_object(cx, Box::new(HID::new_inherited(hid_devices)), global)
     }
 }
 
@@ -37,35 +61,10 @@ impl HIDMethods<crate::DomTypeHolder> for HID {
     event_handler!(disconnect, GetOndisconnect, SetOndisconnect);
 
     fn GetDevices(&self, cx: &mut JSContext) -> RootedPromise {
-        match HidApi::new() {
-            Ok(api) => {
-                let mut jeffsdevices = Vec::new();
+        let promise = Promise::new(cx, &self.global());
 
-                for device in api.device_list() {
-                    log::info!("{:04x}:{:04x}", device.vendor_id(), device.product_id());
-                    let device = HIDDevice::new(
-                        cx,
-                        &self.global(),
-                        device.vendor_id(),
-                        device.product_id(),
-                        DOMString::from(device.product_string().unwrap_or("default device string")),
-                    );
+        promise.resolve_native(cx, &self.devices.clone());
 
-                    jeffsdevices.push(device);
-                }
-
-                let promise = Promise::new(cx, &self.global());
-
-                promise.resolve_native(cx, &jeffsdevices);
-                return promise;
-            },
-            Err(e) => {
-                log::info!("Error accesing HID devices!");
-                let promise = Promise::new(cx, &self.global());
-
-                promise.resolve_native(cx, &self.devices);
-                return promise;
-            },
-        }
+        promise
     }
 }
