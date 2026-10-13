@@ -1,3 +1,5 @@
+use std::hash::{Hash, Hasher};
+
 use dom_struct::dom_struct;
 use js::context::JSContext;
 use script_bindings::codegen::GenericBindings::HIDBinding::HIDDeviceMethods;
@@ -62,5 +64,14 @@ impl HIDDeviceMethods<crate::DomTypeHolder> for HIDDevice {
 
     fn ProductName(&self) -> DOMString {
         self.product_name.clone()
+    }
+}
+
+impl Hash for HIDDevice {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.opened.hash(state);
+        self.vendor_id.hash(state);
+        self.product_id.hash(state);
+        self.product_name.hash(state);
     }
 }
