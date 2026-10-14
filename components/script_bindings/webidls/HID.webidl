@@ -24,7 +24,7 @@ interface HIDDevice : EventTarget {
     Promise<undefined> open();
     // Promise<undefined> close();
     // Promise<undefined> forget();
-    // Promise<undefined> sendReport([EnforceRange] octet reportId, BufferSource data);
+    Promise<undefined> sendReport([EnforceRange] octet reportId, BufferSource data);
     // Promise<undefined> sendFeatureReport(
     //     [EnforceRange] octet reportId,
     //     BufferSource data);
