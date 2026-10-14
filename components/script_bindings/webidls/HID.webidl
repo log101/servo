@@ -21,7 +21,7 @@ interface HIDDevice : EventTarget {
     readonly attribute unsigned short productId;
     readonly attribute DOMString productName;
     // readonly attribute FrozenArray<HIDCollectionInfo> collections;
-    // Promise<undefined> open();
+    Promise<undefined> open();
     // Promise<undefined> close();
     // Promise<undefined> forget();
     // Promise<undefined> sendReport([EnforceRange] octet reportId, BufferSource data);
