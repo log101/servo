@@ -6,7 +6,7 @@ use script_bindings::codegen::GenericBindings::HIDBinding::HIDDeviceMethods;
 use script_bindings::reflector::reflect_dom_object;
 use script_bindings::root::DomRoot;
 use script_bindings::str::DOMString;
-use script_bindings::cell::DomRefCell;
+use script_bindings::cell::RefCell;
 use hidapi::HidApi;
 
 use crate::dom::promise::{Promise, RootedPromise};
@@ -20,7 +20,7 @@ pub struct HIDDevice {
     vendor_id: u16,
     product_id: u16,
     product_name: DOMString,
-    state: DomRefCell<String>
+    state: RefCell<String>
 }
 
 impl HIDDevice {
@@ -31,7 +31,7 @@ impl HIDDevice {
             vendor_id,
             product_id,
             product_name,
-            state: DomRefCell::new(String::from("closed"))
+            state: RefCell::new(String::from("closed"))
         }
     }
 
@@ -79,19 +79,26 @@ impl HIDDeviceMethods<crate::DomTypeHolder> for HIDDevice {
             promise.reject_error(cx, Error::InvalidState(None));
         }
 
-        "opening".clone_into(&mut self.state.borrow_mut());
+        *self.state.borrow_mut() = String::from("opening");
 
         match HidApi::new() {
             Ok(api) => {
                 for device in api.device_list() {
                     if device.vendor_id() == self.vendor_id && device.product_id() == self.product_id {
-                        if let Ok(val) = api.open(device.vendor_id(), device.product_id()) {
-                            log::info!("OPENED CONNECTION");
-                            promise.resolve_native(cx, &())
+                        let res = api.open(device.vendor_id(), device.product_id());
+                        match res {
+                            Ok(_) => {
+                                log::info!("OPENED CONNECTION");
+                                promise.resolve_native(cx, &())
+                            },
+                            Err(err) => {
+                                log::info!("Could not open connection {}", err);
+                                promise.reject_error(cx, Error::Network(None));
+                            },
                         }
-                    }
                 }
-            },
+            }
+        },
             Err(_e) => {
                 log::info!("Error accesing HID devices!");
                 promise.reject_error(cx, Error::InvalidState(None))
@@ -99,6 +106,5 @@ impl HIDDeviceMethods<crate::DomTypeHolder> for HIDDevice {
         }
 
         promise
-
     }
 }
