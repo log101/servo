@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{cmp, fmt, vec};
 
-use image::codecs::{bmp, gif, ico, jpeg, png, webp};
+use image::codecs::{bmp, gif, ico, jpeg, png, webp, avif};
 use image::error::ImageFormatHint;
 use image::metadata::LoopCount;
 use image::{
@@ -28,6 +28,7 @@ enum GenericImageDecoder<'a> {
     Jpeg(Box<jpeg::JpegDecoder<Cursor<&'a [u8]>>>),
     Bmp(Box<bmp::BmpDecoder<Cursor<&'a [u8]>>>),
     Ico(Box<ico::IcoDecoder<Cursor<&'a [u8]>>>),
+    Avif(Box<avif::AvifDecoder<Cursor<&'a [u8]>>>),
 }
 
 impl<'a> std::fmt::Debug for GenericImageDecoder<'a> {
@@ -40,6 +41,7 @@ impl<'a> std::fmt::Debug for GenericImageDecoder<'a> {
             Self::Jpeg(_) => f.debug_tuple("Jpeg").finish(),
             Self::Bmp(_) => f.debug_tuple("Bmp").finish(),
             Self::Ico(_) => f.debug_tuple("Ico").finish(),
+            Self::Avif(_) => f.debug_tuple("Avif").finish()
         }
     }
 }
@@ -58,6 +60,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.dimensions(),
             GenericImageDecoder::Bmp(d) => d.dimensions(),
             GenericImageDecoder::Ico(d) => d.dimensions(),
+            GenericImageDecoder::Avif(d) => d.dimensions(),
         }
     }
 
@@ -72,6 +75,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.color_type(),
             GenericImageDecoder::Bmp(d) => d.color_type(),
             GenericImageDecoder::Ico(d) => d.color_type(),
+            GenericImageDecoder::Avif(d) => d.color_type(),
         }
     }
 
@@ -89,6 +93,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.read_image(buf),
             GenericImageDecoder::Bmp(d) => d.read_image(buf),
             GenericImageDecoder::Ico(d) => d.read_image(buf),
+            GenericImageDecoder::Avif(d) => d.read_image(buf),
         }
     }
 
@@ -103,6 +108,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.read_image_boxed(buf),
             GenericImageDecoder::Bmp(d) => d.read_image_boxed(buf),
             GenericImageDecoder::Ico(d) => d.read_image_boxed(buf),
+            GenericImageDecoder::Avif(d) => d.read_image_boxed(buf),
         }
     }
 
@@ -117,6 +123,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.icc_profile(),
             GenericImageDecoder::Bmp(d) => d.icc_profile(),
             GenericImageDecoder::Ico(d) => d.icc_profile(),
+            GenericImageDecoder::Avif(d) => d.icc_profile(),
         }
     }
 
@@ -131,6 +138,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.exif_metadata(),
             GenericImageDecoder::Bmp(d) => d.exif_metadata(),
             GenericImageDecoder::Ico(d) => d.exif_metadata(),
+            GenericImageDecoder::Avif(d) => d.exif_metadata(),
         }
     }
 
@@ -145,6 +153,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.xmp_metadata(),
             GenericImageDecoder::Bmp(d) => d.xmp_metadata(),
             GenericImageDecoder::Ico(d) => d.xmp_metadata(),
+            GenericImageDecoder::Avif(d) => d.xmp_metadata(),
         }
     }
 
@@ -159,6 +168,7 @@ impl<'a> image::ImageDecoder for GenericImageDecoder<'a> {
             GenericImageDecoder::Jpeg(d) => d.iptc_metadata(),
             GenericImageDecoder::Bmp(d) => d.iptc_metadata(),
             GenericImageDecoder::Ico(d) => d.iptc_metadata(),
+            GenericImageDecoder::Avif(d) => d.iptc_metadata(),
         }
     }
 }
@@ -170,6 +180,7 @@ impl<'a> AnimationDecoder<'a> for GenericImageDecoder<'a> {
             GenericImageDecoder::Apng(decoder) => decoder.into_frames(),
             GenericImageDecoder::Gif(decoder) => decoder.into_frames(),
             GenericImageDecoder::Webp(decoder) => decoder.into_frames(),
+            // GenericImageDecoder::Avif(decoder) => decoder.into_frames(),
             _ => unreachable!("Should never decode these images with animated decoder"),
         }
     }
@@ -179,6 +190,7 @@ impl<'a> AnimationDecoder<'a> for GenericImageDecoder<'a> {
             GenericImageDecoder::Apng(decoder) => decoder.loop_count(),
             GenericImageDecoder::Gif(decoder) => decoder.loop_count(),
             GenericImageDecoder::Webp(decoder) => decoder.loop_count(),
+            // GenericImageDecoder::Avif(decoder) => decoder.loop_count(),
             _ => unreachable!("Should never decode these images with animated decoder"),
         }
     }
@@ -224,6 +236,7 @@ impl<'a> ServoImageDecoder<'a> for DefaultImageDecoder<'a> {
             },
             ImageFormat::Bmp => GenericImageDecoder::Bmp(Box::new(bmp::BmpDecoder::new(reader)?)),
             ImageFormat::Ico => GenericImageDecoder::Ico(Box::new(ico::IcoDecoder::new(reader)?)),
+            ImageFormat::Avif => GenericImageDecoder::Avif(Box::new(avif::AvifDecoder::new(reader)?)),
             _ => {
                 return Err(ImageError::Unsupported(
                     ImageFormatHint::Exact(format).into(),
@@ -237,10 +250,13 @@ impl<'a> ServoImageDecoder<'a> for DefaultImageDecoder<'a> {
         match &self.decoder {
             GenericImageDecoder::Apng(_) | GenericImageDecoder::Gif(_) => true,
             GenericImageDecoder::Webp(decoder) => decoder.has_animation(),
+            // GenericImageDecoder::Avif(decoder) => decoder.has_animation(),
             GenericImageDecoder::Png(_) |
             GenericImageDecoder::Jpeg(_) |
             GenericImageDecoder::Bmp(_) |
+            GenericImageDecoder::Avif(_) |
             GenericImageDecoder::Ico(_) => false,
+
         }
     }
 

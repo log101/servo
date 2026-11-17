@@ -543,6 +543,7 @@ pub fn load_from_memory(buffer: &[u8], cors_status: CorsStatus) -> Option<Raster
         Ok(format) => {
             let Ok(image_decoder) = decoding::DefaultImageDecoder::make_decoder(format, buffer)
             else {
+                debug!("Image format decoder not found for format: {}", format.to_mime_type());
                 return None;
             };
 
@@ -569,6 +570,8 @@ pub fn detect_image_format(buffer: &[u8]) -> Result<ImageFormat, &str> {
         Ok(ImageFormat::Bmp)
     } else if is_ico(buffer) {
         Ok(ImageFormat::Ico)
+    } else if is_avif(buffer) {
+        Ok(ImageFormat::Avif)
     } else {
         Err("Image Format Not Supported")
     }
@@ -704,6 +707,11 @@ fn is_webp(buffer: &[u8]) -> bool {
     // > of the whole file is at most 4 GiB minus 2 bytes.
     let len: usize = u32::from_le_bytes(size) as usize;
     buffer[8..].len() >= len && &buffer[8..12] == b"WEBP"
+}
+
+fn is_avif(buffer: &[u8]) -> bool {
+    // Bytes 4-11 should be "ftypavif". Bytes 0-3 indicate the size of the header packet.
+    &buffer[4..12] == b"ftypavif"
 }
 
 #[cfg(test)]
